@@ -1,0 +1,26 @@
+version: '2'
+services:
+  node:
+    container_name: "axiomZen-node"
+    build:
+      context: ./
+      dockerfile: ./docker-config/node.docker
+    volumes:
+      - ./:/code
+    ports:
+      - "${REROUTE_HTTP_PORT}:80"
+      - "443:443"
+    links:
+      - db
+    environment:
+      - "DB_PORT=${DB_PORT}"
+      - "DB_HOST=${DB_HOST}"
+  db:
+    container_name: "z-pg"
+    image: postgres
+    environment:
+      - "POSTGRES_DB=${DB_DATABASE}"
+      - "POSTGRES_PASSWORD=${DB_PASSWORD}"
+      - "POSTGRES_USER=${DB_USERNAME}"
+    ports:
+      - "${DB_PORT}:5432"

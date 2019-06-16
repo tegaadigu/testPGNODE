@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+option="$1"
+env="$2"
+if [[ -z "$option" ]]
+then
+    option="start"
+fi
+if [[ -z "$env" ]]
+then
+    env="dev"
+fi
+function printUsage() {
+echo $"Usage: ./docker {build|start|stop|down} {dev|prod|qa}"
+}
+
+function copyEnv()
+{
+    df_src=".env.$env"
+    cp "$df_src" ./.env
+}
+
+function canStop() {
+if [ ! -f .env ]; then
+    echo "Project was never started..!"
+    exit 1
+fi
+}
+function removeEnv() {
+    rm -rf .env
+    echo $"Project stop completed.."
+}
+
+function start() {
+    echo "Project start initiated (on $env environment) ..."
+    copyEnv
+    docker-compose up -d
+    echo "Project start completed.."
+}
+
+function stop() {
+    canStop
+    echo "Project stop initiated..."
+    docker-compose stop
+    removeEnv
+}
+
+function down () {
+    canStop
+    echo "Project stop and remove containers (DOWN) initiated..."
+    docker-compose down
+    removeEnv
+
+}
+function build() {
+    echo "Project build initiated (on $env environment) ..."
+    copyEnv
+    docker-compose build --no-cache
+    start
+}
+function checkOption() {
+case "$option" in
+        build)
+        build
+        ;;
+        start)
+            start
+            ;;
+
+        stop)
+            stop
+            ;;
+
+        down)
+            down
+            ;;
+        *)
+            printUsage
+            exit 1
+
+esac
+}
+case "$env" in
+        dev)
+            checkOption
+            ;;
+
+        qa)
+            checkOption
+            ;;
+
+        prod)
+            checkOption
+            ;;
+        *)
+            printUsage
+            exit 1
+esac
+
+
